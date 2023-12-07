@@ -59,6 +59,11 @@
       <version>13.0</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>com.github.ferstl</groupId>
+      <artifactId>depgraph-maven-plugin</artifactId>
+      <version>4.0.2</version>
+    </dependency>
 
 
   </dependencies>
