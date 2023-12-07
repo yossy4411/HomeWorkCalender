@@ -1,0 +1,36 @@
+@font-face {
+    font-family: 'Noto Sans JP';
+    src: url('Font/NotoSansJP-Medium.ttf');
+}
+
+.label {
+    -fx-font-family: 'Noto Sans JP';
+}
+
+.calender {
+    -fx-background-color: #d1d1d1
+}
+.calender .ui {
+    -fx-fill: #999;
+}
+.calender .day {
+    -fx-font-size: 10;
+}
+.calender .schedule {
+    -fx-font-size: 9;
+}
+
+.calender .background{
+    -fx-fill: #d0d0d0;
+    -fx-stroke: #262626;
+}
+.calender .otherMonth{
+    -fx-fill: #c3c3c3;
+    -fx-stroke: #454545;
+}
+.list .schedule{
+    -fx-padding: 2;
+}
+
+
+
