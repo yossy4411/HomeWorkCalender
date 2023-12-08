@@ -13,6 +13,7 @@ public class MainApplication extends Application {
         stage.setTitle("Hello!");
         stage.setScene(fxmlLoader.load());
         stage.show();
+
     }
 
     public static void main(String[] args) {
