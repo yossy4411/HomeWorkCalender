@@ -1,10 +1,10 @@
 @font-face {
-    font-family: 'Noto Sans JP';
-    src: url('Font/NotoSansJP-Medium.ttf');
+    font-family: 'NotoSansJP';
+    src: url('Font/NotoSansJP-VariableFont_wght.ttf');
 }
 
 .label {
-    -fx-font-family: 'Noto Sans JP';
+    -fx-font-family: 'Noto Sans JP Medium';
 }
 
 .calender {
@@ -17,7 +17,8 @@
     -fx-font-size: 10;
 }
 .calender .schedule {
-    -fx-font-size: 9;
+    -fx-font-size: 7;
+    -fx-alignment: baseline-left;
 }
 
 .calender .background{
@@ -31,6 +32,8 @@
 .list .schedule{
     -fx-padding: 2;
 }
-
+.schedule .label{
+    -fx-font-family: 'Noto Sans JP ExtraBold';
+}
 
 

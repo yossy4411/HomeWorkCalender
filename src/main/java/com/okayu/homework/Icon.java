@@ -9,7 +9,7 @@ public class Icon extends ImageView {
     public Icon(String path, int size){
         super();
         try (var fullpath = getClass().getResourceAsStream("icons/" + path + ".png")) {
-            setImage(new Image(fullpath));
+            if(fullpath != null) setImage(new Image(fullpath));
         }catch (IOException e){
             e.printStackTrace();
         }

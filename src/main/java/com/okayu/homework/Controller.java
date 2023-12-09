@@ -12,8 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.SVGPath;
+import javafx.scene.shape.*;
 import javafx.scene.text.Font;
 import one.cafebabe.bc4j.BusinessCalendar;
 
@@ -24,10 +23,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Controller {
     @FXML
@@ -42,6 +38,10 @@ public class Controller {
     @FXML private TabPane scheduleTab;
     private HashMap<Integer, JsonNode> jsonData;
     private YearMonth time;
+    private final BusinessCalendar holiday = BusinessCalendar.newBuilder()
+            .holiday(BusinessCalendar.JAPAN.PUBLIC_HOLIDAYS)
+            .on(2023,12,2).holiday("アプリ開発開始日")
+            .build();
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public void initialize() {
@@ -65,7 +65,6 @@ public class Controller {
             time = scrollEvent.getDeltaY() > 0 ? time.plusMonths(-1) : time.plusMonths(1);
             setCalender(time);
         });
-
 
     }
 
@@ -93,9 +92,6 @@ public class Controller {
         }
     }
     private void setCalender(YearMonth month){
-        BusinessCalendar holiday = BusinessCalendar.newBuilder()
-                .holiday(BusinessCalendar.JAPAN.PUBLIC_HOLIDAYS)
-                .build();
         calender.getChildren().clear();
         LocalDate preset = LocalDate.of(month.getYear(),month.getMonthValue(),1);
         int first = preset.getDayOfWeek().getValue()%7;
@@ -118,15 +114,28 @@ public class Controller {
             if(holiday.isHoliday(date)||date.getDayOfWeek()==DayOfWeek.SUNDAY) {
                 label.setTextFill(Color.RED);
                 if (holiday.isHoliday(date)) {
-                    Label schedule = new Label(Objects.requireNonNull(holiday.getHoliday(date)).name.replace("japanese.",""));
+                    Label schedule = new Label(Objects.requireNonNull(holiday.getHoliday(date)).name.replace("japanese.","").replace("休日","国民の休日"));
+                    if(holiday.isHoliday(date.minusDays(1))&&date.getDayOfWeek()==DayOfWeek.MONDAY&&schedule.getText().equals("国民の休日")) schedule.setText("振替休日");
                     schedule.getStyleClass().add("schedule");
                     schedule.setLabelFor(rectangle);
-                    schedule.setMaxWidth(calender.getPrefWidth()/7);
-                    schedule.setLayoutY(11);
-                    schedule.setLayoutX(2);
+                    schedule.setMaxWidth(calender.getPrefWidth()/7-25);
+                    schedule.setLayoutY(1);
+                    schedule.setLayoutX(25);
                     group.getChildren().add(schedule);
 
                 }
+            }
+            List<Integer> list = searchSchedule(date,false);
+            for (Integer i2:list){
+                JsonNode node = jsonData.get(i2);
+                Polyline line = new Polyline();
+                var paths = line.getPoints();
+                paths.addAll(0.0,0.0);
+                paths.addAll(calender.getPrefWidth()/7,0.0);
+                line.setStroke(Color.valueOf(node.at("/color").asText()));
+                line.setStrokeLineCap(StrokeLineCap.BUTT);
+                line.setStrokeWidth(10);
+                group.getChildren().add(line);
             }
             group.getChildren().add(label);
             calender.add(group, index[0],index[1]);
@@ -139,33 +148,44 @@ public class Controller {
         schedule.getChildren().clear();
         var dateLabel = new Label(date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale))+" の予定");
         schedule.getChildren().add(dateLabel);
-        for(Map.Entry<Integer, JsonNode> map:jsonData.entrySet()){
-            JsonNode node = map.getValue();
-            if (node.at("/type").asText().equals("homework")){
-                final boolean timerange;
-                {
-                    LocalDate before = LocalDate.parse(node.at("/distribute").asText(), dateFormatter);
-                    LocalDate after = LocalDate.parse(node.at("/submit").asText(), dateFormatter);
-                    timerange = !date.isBefore(before)&&!date.isAfter(after);
-                }
-                if (timerange){
-                    Pane pane = new Pane();
-                    Label subject = new Label(node.at("/subject").asText());
-                    Label title = new Label(node.at("/title").asText());
-                    subject.setFont(new Font(8));
-                    title.setFont(new Font(15));
-                    HBox hBox = new HBox(subject, title);
-                    hBox.setAlignment(Pos.CENTER);
-                    hBox.setLayoutX(5);
-                    pane.getChildren().add(hBox);
-                    pane.getStyleClass().add("schedule");
-                    pane.setStyle("-fx-background-color: " + node.at("/color") + ";-fx-background-radius: 3;");
-                    pane.setOnMouseClicked((mouseEvent -> addDetailObject(node.at("/title").asText(), map.getKey())));
-                    title.setLayoutX(3);
-                    title.setLayoutY(1);
-                    schedule.getChildren().add(pane);
-                }
-            }
+        List<Integer> schedules = searchSchedule(date, true);
+        if(holiday.isHoliday(date)){
+            Pane pane = new Pane();
+            Label subject = new Label("休日");
+            Label title = new Label(Objects.requireNonNull(holiday.getHoliday(date)).name.replace("japanese.","").replace("休日","国民の休日"));
+            if(holiday.isHoliday(date.minusDays(1))&&date.getDayOfWeek()==DayOfWeek.MONDAY&&title.getText().equals("国民の休日")) title.setText("振替休日");
+            subject.setFont(new Font(8));
+            subject.setTextFill(Color.WHITE);
+            title.setFont(new Font(15));
+            title.setTextFill(Color.WHITE);
+            HBox hBox = new HBox(subject, title);
+            hBox.setSpacing(4);
+            hBox.setAlignment(Pos.CENTER);
+            hBox.setLayoutX(5);
+            pane.getChildren().add(hBox);
+            pane.getStyleClass().add("schedule");
+            pane.setStyle("-fx-background-color:red;-fx-background-radius: 3;");
+            title.setLayoutX(3);
+            title.setLayoutY(1);
+            schedule.getChildren().add(pane);
+        }
+        for(int id: schedules){
+            JsonNode node = jsonData.get(id);
+            Pane pane = new Pane();
+            Label subject = new Label(node.at("/subject").asText());
+            Label title = new Label(node.at("/title").asText());
+            subject.setFont(new Font(8));
+            title.setFont(new Font(15));
+            HBox hBox = new HBox(subject, title);
+            hBox.setAlignment(Pos.CENTER);
+            hBox.setLayoutX(5);
+            pane.getChildren().add(hBox);
+            pane.getStyleClass().add("schedule");
+            pane.setStyle("-fx-background-color: " + node.at("/color") + ";-fx-background-radius: 3;");
+            pane.setOnMouseClicked((mouseEvent -> addDetailObject(node.at("/title").asText(), id)));
+            title.setLayoutX(3);
+            title.setLayoutY(1);
+            schedule.getChildren().add(pane);
         }
 
     }
@@ -179,10 +199,33 @@ public class Controller {
         Icon close = new Icon("close",18);
         close.setOnMouseClicked(mouseEvent->scheduleTab.getTabs().remove(tab));
         tab.setGraphic(new HBox(header, close));
+        VBox body = new VBox();
+        tab.setContent(body);
         if(scheduleTab.getTabs().stream()
                 .noneMatch(paneTab -> paneTab.getId().equals("sc"+id)))scheduleTab.getTabs().add(tab);
         JsonNode jsonNode = jsonData.get(id);
         tab.getStyleClass().add("scheduleTab");
         tab.setStyle("-fx-background:"+jsonNode.at("/color"));
+    }
+
+    /**
+     * @param date 検索する日
+     * @return 指定された日の予定のid値
+     */
+    private List<Integer> searchSchedule(LocalDate date, boolean searchAllRange){
+        List<Integer> result = new ArrayList<>();
+        for(Map.Entry<Integer, JsonNode> obj:jsonData.entrySet()){
+            JsonNode node = obj.getValue();
+            if(node.at("/type").asText().equals("homework")) {
+                LocalDate before = LocalDate.parse(obj.getValue().at("/distribute").asText(), dateFormatter);
+                LocalDate after = LocalDate.parse(obj.getValue().at("/submit").asText(), dateFormatter);
+                if(searchAllRange) {
+                    if (!date.isBefore(before) && !date.isAfter(after)) result.add(obj.getKey());
+                } else {
+                    if (before.isEqual(date)) result.add(obj.getKey());
+                }
+            }
+        }
+        return result;
     }
 }
