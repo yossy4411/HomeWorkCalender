@@ -171,12 +171,16 @@ public class Controller {
     }
 
     private void addDetailObject(String title, int id){
-        Tab tab = new Tab(title);
+        Tab tab = new Tab();
         tab.setClosable(true);
         tab.setId("sc"+id);
+        Label header = new Label(title);
+        header.setMaxWidth(50);
+        Icon close = new Icon("close",18);
+        close.setOnMouseClicked(mouseEvent->scheduleTab.getTabs().remove(tab));
+        tab.setGraphic(new HBox(header, close));
         if(scheduleTab.getTabs().stream()
                 .noneMatch(paneTab -> paneTab.getId().equals("sc"+id)))scheduleTab.getTabs().add(tab);
-
         JsonNode jsonNode = jsonData.get(id);
         tab.getStyleClass().add("scheduleTab");
         tab.setStyle("-fx-background:"+jsonNode.at("/color"));
