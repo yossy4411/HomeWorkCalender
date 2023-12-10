@@ -1,7 +1,7 @@
 package com.okayu.homework;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.okayu.homework.schedule.Schedule;
+import com.okayu.homework.schedule.Schedules;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -12,7 +12,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
+import javafx.scene.shape.Polyline;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.SVGPath;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import one.cafebabe.bc4j.BusinessCalendar;
 
@@ -23,7 +26,10 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 public class Controller {
     @FXML
@@ -36,18 +42,18 @@ public class Controller {
     @FXML private SVGPath left;
     @FXML private Label month;
     @FXML private TabPane scheduleTab;
-    private HashMap<Integer, JsonNode> jsonData;
+    private Schedules jsonData;
     private YearMonth time;
     private final BusinessCalendar holiday = BusinessCalendar.newBuilder()
             .holiday(BusinessCalendar.JAPAN.PUBLIC_HOLIDAYS)
             .on(2023,12,2).holiday("アプリ開発開始日")
             .build();
-    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public void initialize() {
-        JsonNode jsonNode = readSchedule(systemFile+"schedules.json");
-        if (jsonNode!=null) {
-            jsonData = loadJson(jsonNode);
+        try{
+            jsonData = new Schedules(systemFile+"schedules.json");
+        }catch(IOException e){
+            e.printStackTrace();
         }
 
         time = YearMonth.now();
@@ -68,34 +74,12 @@ public class Controller {
 
     }
 
-    private HashMap<Integer, JsonNode> loadJson(JsonNode node) {
-
-        if(node.has("schedules")){
-            HashMap<Integer,JsonNode> hashMap = new HashMap<>();
-            JsonNode schedules = node.at("/schedules");
-            if(schedules.isArray())for(JsonNode schedule:schedules)hashMap.put(schedule.has("id")?schedule.at("/id").asInt():-1, schedule);
-            return hashMap;
-        }else{
-            return new HashMap<>(Map.of(node.has("id")?node.at("id").asInt():-1, node));
-        }
-
-    }
-
-    private JsonNode readSchedule(String filepath) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            File file = new File(filepath);
-            return objectMapper.readTree(file);
-        }catch (IOException e){
-            e.printStackTrace();
-            return null;
-        }
-    }
     private void setCalender(YearMonth month){
         calender.getChildren().clear();
         LocalDate preset = LocalDate.of(month.getYear(),month.getMonthValue(),1);
         int first = preset.getDayOfWeek().getValue()%7;
         LocalDate date=preset.minusDays(first);
+        HashMap<Integer, Polyline> scheduleLine = new HashMap<>();
         for(int i= 0;i<35;i++) {
             int[] index = {i%7, i/7};
 
@@ -125,16 +109,22 @@ public class Controller {
 
                 }
             }
-            List<Integer> list = searchSchedule(date,false);
-            for (Integer i2:list){
-                JsonNode node = jsonData.get(i2);
+            List<Integer> list = jsonData.searchSchedule(date);
+            List<Integer> nextDay = jsonData.searchSchedule(date.plusDays(1));
+            for (int j = 0; j < list.size(); j++) {
+                int i2 = list.get(j);
+                Schedule node = jsonData.getScheduleList().get(i2);
                 Polyline line = new Polyline();
                 var paths = line.getPoints();
-                paths.addAll(0.0,0.0);
-                paths.addAll(calender.getPrefWidth()/7,0.0);
-                line.setStroke(Color.valueOf(node.at("/color").asText()));
+                paths.addAll(0.0, 18+6.0*j);
+                if(nextDay.contains(i2)&&nextDay.indexOf(i2)<j){
+                    paths.addAll(calender.getPrefWidth() / 7, 18 + 6.0 * nextDay.indexOf(i2));
+                }else {
+                    paths.addAll(calender.getPrefWidth() / 7, 18 + 6.0 * j);
+                }
+                line.setStroke(node.getColor());
                 line.setStrokeLineCap(StrokeLineCap.BUTT);
-                line.setStrokeWidth(10);
+                line.setStrokeWidth(6);
                 group.getChildren().add(line);
             }
             group.getChildren().add(label);
@@ -148,7 +138,7 @@ public class Controller {
         schedule.getChildren().clear();
         var dateLabel = new Label(date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale))+" の予定");
         schedule.getChildren().add(dateLabel);
-        List<Integer> schedules = searchSchedule(date, true);
+        List<Integer> schedules = jsonData.searchSchedule(date);
         if(holiday.isHoliday(date)){
             Pane pane = new Pane();
             Label subject = new Label("休日");
@@ -170,10 +160,10 @@ public class Controller {
             schedule.getChildren().add(pane);
         }
         for(int id: schedules){
-            JsonNode node = jsonData.get(id);
+            Schedule node = jsonData.getScheduleList().get(id);
             Pane pane = new Pane();
-            Label subject = new Label(node.at("/subject").asText());
-            Label title = new Label(node.at("/title").asText());
+            Label subject = new Label(node.getSubject());
+            Label title = new Label(node.getTitle());
             subject.setFont(new Font(8));
             title.setFont(new Font(15));
             HBox hBox = new HBox(subject, title);
@@ -181,8 +171,8 @@ public class Controller {
             hBox.setLayoutX(5);
             pane.getChildren().add(hBox);
             pane.getStyleClass().add("schedule");
-            pane.setStyle("-fx-background-color: " + node.at("/color") + ";-fx-background-radius: 3;");
-            pane.setOnMouseClicked((mouseEvent -> addDetailObject(node.at("/title").asText(), id)));
+            pane.setStyle("-fx-background-color: " + node.getColorCode() + ";-fx-background-radius: 3;");
+            pane.setOnMouseClicked((mouseEvent -> addTab(node.getTitle(), id)));
             title.setLayoutX(3);
             title.setLayoutY(1);
             schedule.getChildren().add(pane);
@@ -190,7 +180,7 @@ public class Controller {
 
     }
 
-    private void addDetailObject(String title, int id){
+    private void addTab(String title, int id){
         Tab tab = new Tab();
         tab.setClosable(true);
         tab.setId("sc"+id);
@@ -203,29 +193,9 @@ public class Controller {
         tab.setContent(body);
         if(scheduleTab.getTabs().stream()
                 .noneMatch(paneTab -> paneTab.getId().equals("sc"+id)))scheduleTab.getTabs().add(tab);
-        JsonNode jsonNode = jsonData.get(id);
         tab.getStyleClass().add("scheduleTab");
-        tab.setStyle("-fx-background:"+jsonNode.at("/color"));
+        tab.setStyle("-fx-background:"+jsonData.getScheduleList().get(id).getColorCode());
     }
 
-    /**
-     * @param date 検索する日
-     * @return 指定された日の予定のid値
-     */
-    private List<Integer> searchSchedule(LocalDate date, boolean searchAllRange){
-        List<Integer> result = new ArrayList<>();
-        for(Map.Entry<Integer, JsonNode> obj:jsonData.entrySet()){
-            JsonNode node = obj.getValue();
-            if(node.at("/type").asText().equals("homework")) {
-                LocalDate before = LocalDate.parse(obj.getValue().at("/distribute").asText(), dateFormatter);
-                LocalDate after = LocalDate.parse(obj.getValue().at("/submit").asText(), dateFormatter);
-                if(searchAllRange) {
-                    if (!date.isBefore(before) && !date.isAfter(after)) result.add(obj.getKey());
-                } else {
-                    if (before.isEqual(date)) result.add(obj.getKey());
-                }
-            }
-        }
-        return result;
-    }
+
 }
