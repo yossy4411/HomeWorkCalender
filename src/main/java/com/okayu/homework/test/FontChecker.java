@@ -1,4 +1,4 @@
-package com.okayu.homework;
+package com.okayu.homework.test;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

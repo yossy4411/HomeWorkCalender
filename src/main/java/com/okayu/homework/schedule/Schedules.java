@@ -6,10 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Schedules {
     private final HashMap<Integer,Schedule> scheduleList = new HashMap<>();
@@ -30,11 +27,12 @@ public class Schedules {
         return scheduleList;
     }
     public List<Integer> searchSchedule(LocalDate time) {
-        List<Integer> result = new ArrayList<>();
+        List<Schedule> result = new ArrayList<>();
         for(Map.Entry<Integer,Schedule> node:scheduleList.entrySet()){
-            if(node.getValue().isPeriod(time)) result.add(node.getKey());
+            if(node.getValue().isPeriod(time)) result.add(node.getValue());
         }
-        return result;
+        result.sort(Comparator.comparingLong(Schedule::getSort));
+        return result.stream().mapToInt(Schedule::getId).boxed().toList();
     }
     public List<Integer> searchScheduleByStart(LocalDate time) {
         List<Integer> result = new ArrayList<>();

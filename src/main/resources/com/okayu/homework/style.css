@@ -31,9 +31,13 @@
 }
 .list .schedule{
     -fx-padding: 2;
+    -fx-spacing: 10;
 }
 .schedule .label{
     -fx-font-family: 'Noto Sans JP ExtraBold';
+}
+.newSchedule{
+    -fx-background-color: #d6d6d6;
 }
 
 

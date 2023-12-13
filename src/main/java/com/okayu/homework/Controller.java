@@ -7,15 +7,9 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Polyline;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.SVGPath;
-import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.*;
 import javafx.scene.text.Font;
 import one.cafebabe.bc4j.BusinessCalendar;
 
@@ -26,7 +20,6 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -79,7 +72,6 @@ public class Controller {
         LocalDate preset = LocalDate.of(month.getYear(),month.getMonthValue(),1);
         int first = preset.getDayOfWeek().getValue()%7;
         LocalDate date=preset.minusDays(first);
-        HashMap<Integer, Polyline> scheduleLine = new HashMap<>();
         for(int i= 0;i<35;i++) {
             int[] index = {i%7, i/7};
 
@@ -111,21 +103,41 @@ public class Controller {
             }
             List<Integer> list = jsonData.searchSchedule(date);
             List<Integer> nextDay = jsonData.searchSchedule(date.plusDays(1));
+            int nextIncludes = -1;
+            int nextEquals = 0;
             for (int j = 0; j < list.size(); j++) {
+                int systemIndex = Math.min(j, 4);
                 int i2 = list.get(j);
                 Schedule node = jsonData.getScheduleList().get(i2);
                 Polyline line = new Polyline();
-                var paths = line.getPoints();
-                paths.addAll(0.0, 18+6.0*j);
-                if(nextDay.contains(i2)&&nextDay.indexOf(i2)<j){
-                    paths.addAll(calender.getPrefWidth() / 7, 18 + 6.0 * nextDay.indexOf(i2));
-                }else {
-                    paths.addAll(calender.getPrefWidth() / 7, 18 + 6.0 * j);
-                }
                 line.setStroke(node.getColor());
+                var paths = line.getPoints();
+                paths.addAll(0.0, 18 + 6.0 * systemIndex);
+                if (nextDay.contains(i2)) {
+                    nextIncludes = j;
+                    if (date.getDayOfWeek() == DayOfWeek.SATURDAY)
+                        paths.addAll(calender.getPrefWidth() / 7, 18 + 6.0 * systemIndex);
+                    else {
+                        int nextIndex = Math.min(nextDay.indexOf(i2), 4);
+                        if (nextIndex <= systemIndex) {
+                            paths.addAll(calender.getPrefWidth() / 7, 18 + 6.0 * nextIndex);
+                            nextEquals = j + 1;
+                            if(nextIndex==systemIndex&&systemIndex==4) line.setStroke(Color.GRAY);
+                        } else paths.addAll(calender.getPrefWidth() / 7 - 3 - 6 * (j - nextEquals), 18 + 6.0 * j,
+                                calender.getPrefWidth() / 7 - 3 - 6 * (j - nextEquals), 18 + 6.0 * nextIndex,
+                                calender.getPrefWidth() / 7, 18 + 6.0 * nextIndex);
+                    }
+                } else {
+                    paths.addAll(calender.getPrefWidth() / 7,
+                            18 + 6.0 * (j == list.size() - 1 && nextDay.size() != list.size() ? nextDay.size() : nextIncludes + 1));
+                    if(systemIndex==4) line.setStroke(Color.GRAY);
+                }
+
                 line.setStrokeLineCap(StrokeLineCap.BUTT);
+                line.setStrokeLineJoin(StrokeLineJoin.ROUND);
                 line.setStrokeWidth(6);
                 group.getChildren().add(line);
+                if (j > 4) break;
             }
             group.getChildren().add(label);
             calender.add(group, index[0],index[1]);
@@ -177,7 +189,34 @@ public class Controller {
             title.setLayoutY(1);
             schedule.getChildren().add(pane);
         }
+        StackPane pane = new StackPane();
+        Label subject = new Label("予定を追加");
+        subject.setFont(new Font(11));
+        pane.getChildren().add(subject);
+        pane.setAlignment(Pos.CENTER);
+        pane.getStyleClass().add("newSchedule");
+        pane.setLayoutY(20);
+        pane.setOnMouseClicked((mouseEvent -> addnewSchedule()));
+        schedule.getChildren().add(pane);
 
+    }
+
+    private void addnewSchedule() {
+        Tab tab = new Tab();
+        tab.setClosable(true);
+        int id = 0;
+        for (Tab tab1 : scheduleTab.getTabs()) {
+            id=Math.max(Integer.parseInt(tab1.getId().replace("new_","")),id);
+        }
+        Label header = new Label("新しい予定"+(id==0?"":" "+id+1));
+        tab.setId("new_"+id);
+        header.setMaxWidth(50);
+        Icon close = new Icon("close",18);
+        close.setOnMouseClicked(mouseEvent->scheduleTab.getTabs().remove(tab));
+        tab.setGraphic(new HBox(header, close));
+        VBox body = new VBox();
+        tab.setContent(body);
+        scheduleTab.getTabs().add(tab);
     }
 
     private void addTab(String title, int id){

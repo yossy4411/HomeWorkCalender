@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -46,7 +47,7 @@ public class Schedule {
         this.node = node;
     }
 
-    public LocalDateTime getStart(){return start;}
+    public long getSort(){return start.toEpochSecond(ZoneOffset.ofHours(9));}
     public LocalDateTime getFinish(){return finish;}
     public String getTitle(){return title;}
     public Color getColor(){return color;}
