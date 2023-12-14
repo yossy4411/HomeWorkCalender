@@ -36,6 +36,9 @@
 .schedule .label{
     -fx-font-family: 'Noto Sans JP ExtraBold';
 }
+* {
+    -fx-font-smoothing-type: lcd;
+}
 .newSchedule{
     -fx-background-color: #d6d6d6;
 }

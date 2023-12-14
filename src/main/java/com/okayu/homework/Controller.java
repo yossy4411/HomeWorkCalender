@@ -35,6 +35,8 @@ public class Controller {
     @FXML private SVGPath left;
     @FXML private Label month;
     @FXML private TabPane scheduleTab;
+    @FXML private VBox menu;
+    //@FXML private ScrollPane menubar;
     private Schedules jsonData;
     private YearMonth time;
     private final BusinessCalendar holiday = BusinessCalendar.newBuilder()
@@ -152,7 +154,7 @@ public class Controller {
         schedule.getChildren().add(dateLabel);
         List<Integer> schedules = jsonData.searchSchedule(date);
         if(holiday.isHoliday(date)){
-            Pane pane = new Pane();
+            AnchorPane pane = new AnchorPane();
             Label subject = new Label("休日");
             Label title = new Label(Objects.requireNonNull(holiday.getHoliday(date)).name.replace("japanese.","").replace("休日","国民の休日"));
             if(holiday.isHoliday(date.minusDays(1))&&date.getDayOfWeek()==DayOfWeek.MONDAY&&title.getText().equals("国民の休日")) title.setText("振替休日");
@@ -173,7 +175,7 @@ public class Controller {
         }
         for(int id: schedules){
             Schedule node = jsonData.getScheduleList().get(id);
-            Pane pane = new Pane();
+            AnchorPane pane = new AnchorPane();
             Label subject = new Label(node.getSubject());
             Label title = new Label(node.getTitle());
             subject.setFont(new Font(8));
@@ -197,7 +199,8 @@ public class Controller {
         pane.getStyleClass().add("newSchedule");
         pane.setLayoutY(20);
         pane.setOnMouseClicked((mouseEvent -> addnewSchedule()));
-        schedule.getChildren().add(pane);
+        menu.getChildren().clear();
+        menu.getChildren().add(pane);
 
     }
 
@@ -206,7 +209,7 @@ public class Controller {
         tab.setClosable(true);
         int id = 0;
         for (Tab tab1 : scheduleTab.getTabs()) {
-            id=Math.max(Integer.parseInt(tab1.getId().replace("new_","")),id);
+            if (tab1.getId().contains("new_"))id=Math.max(Integer.parseInt(tab1.getId().replace("new_","")),id);
         }
         Label header = new Label("新しい予定"+(id==0?"":" "+id+1));
         tab.setId("new_"+id);
