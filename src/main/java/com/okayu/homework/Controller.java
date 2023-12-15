@@ -158,10 +158,10 @@ public class Controller {
             Label subject = new Label("休日");
             Label title = new Label(Objects.requireNonNull(holiday.getHoliday(date)).name.replace("japanese.","").replace("休日","国民の休日"));
             if(holiday.isHoliday(date.minusDays(1))&&date.getDayOfWeek()==DayOfWeek.MONDAY&&title.getText().equals("国民の休日")) title.setText("振替休日");
-            subject.setFont(new Font(8));
+            subject.getStyleClass().add("subject");
             subject.setTextFill(Color.WHITE);
-            title.setFont(new Font(15));
             title.setTextFill(Color.WHITE);
+            title.getStyleClass().add("title");
             HBox hBox = new HBox(subject, title);
             hBox.setSpacing(4);
             hBox.setAlignment(Pos.CENTER);
@@ -178,8 +178,8 @@ public class Controller {
             AnchorPane pane = new AnchorPane();
             Label subject = new Label(node.getSubject());
             Label title = new Label(node.getTitle());
-            subject.setFont(new Font(8));
-            title.setFont(new Font(15));
+            subject.getStyleClass().add("subject");
+            title.getStyleClass().add("title");
             HBox hBox = new HBox(subject, title);
             hBox.setAlignment(Pos.CENTER);
             hBox.setLayoutX(5);
@@ -198,13 +198,13 @@ public class Controller {
         pane.setAlignment(Pos.CENTER);
         pane.getStyleClass().add("newSchedule");
         pane.setLayoutY(20);
-        pane.setOnMouseClicked((mouseEvent -> addnewSchedule()));
+        pane.setOnMouseClicked((mouseEvent -> addNewSchedule()));
         menu.getChildren().clear();
         menu.getChildren().add(pane);
 
     }
 
-    private void addnewSchedule() {
+    private void addNewSchedule() {
         Tab tab = new Tab();
         tab.setClosable(true);
         int id = 0;

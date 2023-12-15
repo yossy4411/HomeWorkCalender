@@ -5,6 +5,7 @@
 
 .label {
     -fx-font-family: 'Noto Sans JP Medium';
+    -fx-font-size: 13;
 }
 
 .calender {
@@ -35,6 +36,12 @@
 }
 .schedule .label{
     -fx-font-family: 'Noto Sans JP ExtraBold';
+}
+.schedule .title{
+    -fx-font-size: 15;
+}
+.subject{
+    -fx-font-size: 7;
 }
 * {
     -fx-font-smoothing-type: lcd;
