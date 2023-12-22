@@ -216,7 +216,7 @@ public class Controller {
         close.setOnMouseClicked(mouseEvent->scheduleTab.getTabs().remove(tab));
         tab.setGraphic(new HBox(header, close));
         Label label = new Label("タイトル");
-        TextField title = new TextField("新規予定1");
+        TextField title = new TextField("新規予定"+(id==0?"":" "+id+1));
         title.setPromptText("予定のタイトル");
         label.setMinWidth(120);
         title.setMinWidth(100);
