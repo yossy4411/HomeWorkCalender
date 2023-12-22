@@ -2,14 +2,19 @@
     font-family: 'NotoSansJP';
     src: url('Font/NotoSansJP-VariableFont_wght.ttf');
 }
-
+* {
+    -fx-font-family: 'Noto Sans JP';
+}
 .label {
-    -fx-font-family: 'Noto Sans JP Medium';
+    -fx-font-family: 'Noto Sans JP';
+    -fx-font-weight: 500;
     -fx-font-size: 13;
 }
-
 .calender {
     -fx-background-color: #d1d1d1
+}
+.text-field {
+    -fx-font-weight: 400;
 }
 .calender .ui {
     -fx-fill: #999;
@@ -35,7 +40,7 @@
     -fx-spacing: 10;
 }
 .schedule .label{
-    -fx-font-family: 'Noto Sans JP ExtraBold';
+    -fx-font-weight: 800;
 }
 .schedule .title{
     -fx-font-size: 15;

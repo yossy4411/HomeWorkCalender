@@ -4,9 +4,7 @@ import com.okayu.homework.schedule.Schedule;
 import com.okayu.homework.schedule.Schedules;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
@@ -217,8 +215,14 @@ public class Controller {
         Icon close = new Icon("close",18);
         close.setOnMouseClicked(mouseEvent->scheduleTab.getTabs().remove(tab));
         tab.setGraphic(new HBox(header, close));
-        VBox body = new VBox();
-        tab.setContent(body);
+        Label label = new Label("タイトル");
+        TextField title = new TextField("新規予定1");
+        title.setPromptText("予定のタイトル");
+        label.setMinWidth(120);
+        title.setMinWidth(100);
+        HBox splitPane = new HBox(label,title);
+        splitPane.setAlignment(Pos.CENTER);
+        tab.setContent(new ScrollPane(new VBox(splitPane)));
         scheduleTab.getTabs().add(tab);
     }
 

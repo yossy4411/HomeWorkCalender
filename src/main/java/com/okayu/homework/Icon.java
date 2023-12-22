@@ -16,4 +16,5 @@ public class Icon extends ImageView {
         setFitHeight(size);
         setFitWidth(size);
     }
+
 }

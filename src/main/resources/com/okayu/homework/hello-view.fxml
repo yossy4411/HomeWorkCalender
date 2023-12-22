@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.shape.*?>
-<?import javafx.scene.text.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.shape.SVGPath?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="486.0" prefWidth="837.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.okayu.homework.Controller">
-    <ScrollPane hbarPolicy="NEVER" layoutX="4.0" layoutY="8.0" prefHeight="458.0" prefWidth="464.0" vbarPolicy="ALWAYS">
+<AnchorPane prefHeight="486.0" prefWidth="837.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.okayu.homework.Controller">
+    <ScrollPane hbarPolicy="NEVER" layoutX="4.0" layoutY="7.0" prefHeight="476.0" prefWidth="464.0" vbarPolicy="ALWAYS">
         <Pane>
             <Pane prefHeight="273.0" prefWidth="450.0" styleClass="calender">
                 <Rectangle fill="WHITE" height="27.0" stroke="WHITE" strokeType="INSIDE" strokeWidth="0.0" styleClass="ui" width="450.0" />
@@ -37,17 +46,11 @@
                 <SVGPath fx:id="left" content="M 166.5448,57.098326 V 69.336617 L 156.24549,63.175284 Z" layoutX="-139.0" layoutY="-49.0" stroke="BLACK" strokeLineCap="ROUND" strokeLineJoin="ROUND" strokeWidth="4.5" />
             </Pane>
             <ScrollPane hbarPolicy="NEVER" layoutY="280.0" prefHeight="120.0" prefWidth="450.0" vbarPolicy="ALWAYS">
-                <VBox fx:id="schedule" prefHeight="126.0" prefWidth="435.0" spacing="5.0">
-                    <Label prefHeight="126.0" prefWidth="365.0" text="Label">
-                        <font>
-                            <Font size="83.0" />
-                        </font>
-                    </Label>
-                </VBox>
+                <VBox fx:id="schedule" prefHeight="126.0" prefWidth="435.0" spacing="5.0" />
             </ScrollPane>
             <VBox fx:id="menu" layoutY="405.0" prefWidth="450.0" />
         </Pane>
     </ScrollPane>
-    <TabPane fx:id="scheduleTab" layoutX="473.0" layoutY="16.0" prefHeight="438.0" prefWidth="329.0" tabClosingPolicy="UNAVAILABLE" />
-    <Separator layoutX="469.0" orientation="VERTICAL" prefHeight="490.0" prefWidth="11.0" />
+    <TabPane fx:id="scheduleTab" layoutX="480.0" layoutY="11.0" prefHeight="468.0" prefWidth="348.0" tabClosingPolicy="UNAVAILABLE" />
+    <Separator layoutX="470.0" orientation="VERTICAL" prefHeight="490.0" prefWidth="0.0" />
 </AnchorPane>
