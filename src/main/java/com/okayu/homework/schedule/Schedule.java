@@ -20,9 +20,10 @@ public class Schedule {
     private final String subject;
     private final int id;
     private final Color color;
+    public static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     public Schedule(JsonNode node){
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
         if(node.get("type").asText().equals("homework")){
             start = LocalDate.parse(node.get("distribute").asText(), dateFormatter).atStartOfDay();
             finish = LocalDate.parse(node.get("submit").asText(),dateFormatter).atStartOfDay();
@@ -58,9 +59,6 @@ public class Schedule {
                 (int) (color.getBlue() * 255));
     }
 
-    public JsonNode getRaw() {
-        return node;
-    }
     public String getSubject(){
         return subject;
     }
@@ -99,7 +97,7 @@ public class Schedule {
             if (type.equals(ScheduleType.Homework)){
                 jsonNodes.put("type",type.asText());
                 jsonNodes.put("provided", "");
-                jsonNodes.put("share", ScheduleType.ShareLevel.None.asText());
+                jsonNodes.put("share", ShareLevel.None.asText());
             }
             return new Schedule(jsonNodes);
         }

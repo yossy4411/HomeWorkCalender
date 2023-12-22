@@ -196,43 +196,72 @@ public class Controller {
         pane.setAlignment(Pos.CENTER);
         pane.getStyleClass().add("newSchedule");
         pane.setLayoutY(20);
-        pane.setOnMouseClicked((mouseEvent -> addNewSchedule()));
+        pane.setOnMouseClicked((mouseEvent -> addNewSchedule(date)));
         menu.getChildren().clear();
         menu.getChildren().add(pane);
 
     }
 
-    private void addNewSchedule() {
+    private void addNewSchedule(LocalDate date) {
         Tab tab = new Tab();
         tab.setClosable(true);
         int id = 0;
         for (Tab tab1 : scheduleTab.getTabs()) {
-            if (tab1.getId().contains("new_"))id=Math.max(Integer.parseInt(tab1.getId().replace("new_","")),id);
+            if (tab1.getId().contains("new_")){
+                int i = Math.max(Integer.parseInt(tab1.getId().replace("new_", "")), id);
+                if (tab1.getId().contains("new_")) id = i;
+            }
         }
-        Label header = new Label("新しい予定"+(id==0?"":" "+id+1));
+        id++;
+        Label header = new Label("新しい予定"+(id==1?"":" "+id));
+        header.setStyle("-fx-font-size:10");
         tab.setId("new_"+id);
         header.setMaxWidth(50);
-        Icon close = new Icon("close",18);
+        Icon close = new Icon("close",15);
         close.setOnMouseClicked(mouseEvent->scheduleTab.getTabs().remove(tab));
         tab.setGraphic(new HBox(header, close));
-        Label label = new Label("タイトル");
-        TextField title = new TextField("新規予定"+(id==0?"":" "+id+1));
-        title.setPromptText("予定のタイトル");
-        label.setMinWidth(120);
-        title.setMinWidth(100);
-        HBox splitPane = new HBox(label,title);
-        splitPane.setAlignment(Pos.CENTER);
-        tab.setContent(new ScrollPane(new VBox(splitPane)));
+        VBox index = new VBox();
+        String[][] configs = new String[][]{{"タイトル","新規予定"+id,"予定のタイトル"},
+                {"開始時間",date.format(Schedule.dateFormatter),"2023-01-20 または 2023-01-20 10:10"},
+                {"終了時間",date.format(Schedule.dateFormatter),"2023-01-20 または 2023-01-20 10:10"},
+        };
+        String[] inputs = new String[configs.length];
+        for (int i = 0; i < configs.length; i++) {
+            String[] config = configs[i];
+            addContext(config, index, inputs, i);
+        }
+        /*for (Node node:inputs){
+            if(node instanceof TextField input){
+                input.getText();
+            }else if(node instanceof TextArea input){
+
+            }
+        }*/
+        tab.setContent(new ScrollPane(index));
         scheduleTab.getTabs().add(tab);
     }
-
+    private void addContext(String[] config, Pane node, String[] c, int index){
+        Label label = new Label(config[0]);
+        TextField field = new TextField(config[1]);
+        try {
+            field.setPromptText(config[2]);
+        } catch (ArrayIndexOutOfBoundsException ignored) {
+        }
+        label.setMinWidth(120);
+        field.setMinWidth(180);
+        HBox splitPane = new HBox(label, field);
+        splitPane.setAlignment(Pos.CENTER);
+        c[index] = field.getText();
+        node.getChildren().add(splitPane);
+    }
     private void addTab(String title, int id){
         Tab tab = new Tab();
         tab.setClosable(true);
         tab.setId("sc"+id);
         Label header = new Label(title);
         header.setMaxWidth(50);
-        Icon close = new Icon("close",18);
+        header.setStyle("-fx-font-size:10");
+        Icon close = new Icon("close",15);
         close.setOnMouseClicked(mouseEvent->scheduleTab.getTabs().remove(tab));
         tab.setGraphic(new HBox(header, close));
         VBox body = new VBox();

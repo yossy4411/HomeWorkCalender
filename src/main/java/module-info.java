@@ -11,6 +11,4 @@ module com.okayu.homework {
     opens com.okayu.homework.schedule to javafx.fxml;
     exports com.okayu.homework.test;
     opens com.okayu.homework.test to javafx.fxml;
-    exports com.okayu.homework.FXLib;
-    opens com.okayu.homework.FXLib to javafx.fxml;
 }
