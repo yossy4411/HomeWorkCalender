@@ -15,15 +15,27 @@
     <junit.version>5.9.2</junit.version>      </properties>
 
   <dependencies>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-base</artifactId>
+      <version>21.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <version>21.0.1</version>
+    </dependency>
+
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
-      <version>21-ea+5</version>
+      <version>21.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-fxml</artifactId>
-      <version>21-ea+5</version>
+      <version>21.0.1</version>
     </dependency>
                                     
     <dependency>

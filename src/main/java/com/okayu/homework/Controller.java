@@ -225,7 +225,7 @@ public class Controller {
                 {"開始時間",date.format(Schedule.dateFormatter),"2023-01-20 または 2023-01-20 10:10"},
                 {"終了時間",date.format(Schedule.dateFormatter),"2023-01-20 または 2023-01-20 10:10"},
         };
-        String[] inputs = new String[configs.length];
+        var inputs = new Object[configs.length];
         for (int i = 0; i < configs.length; i++) {
             String[] config = configs[i];
             addContext(config, index, inputs, i);
@@ -240,19 +240,34 @@ public class Controller {
         tab.setContent(new ScrollPane(index));
         scheduleTab.getTabs().add(tab);
     }
-    private void addContext(String[] config, Pane node, String[] c, int index){
+    private void addContext(String[] config, Pane node, Object[] c, int index){
         Label label = new Label(config[0]);
-        TextField field = new TextField(config[1]);
-        try {
-            field.setPromptText(config[2]);
-        } catch (ArrayIndexOutOfBoundsException ignored) {
+        if(index==1){
+            var field = new DatePicker();
+            try {
+                field.setPromptText(config[2]);
+            } catch (ArrayIndexOutOfBoundsException ignored) {
+            }
+
+            label.setMinWidth(120);
+            field.setMinWidth(180);
+            HBox splitPane = new HBox(label, field);
+            splitPane.setAlignment(Pos.CENTER);
+            c[index] = field.getValue();
+            node.getChildren().add(splitPane);
+        }else {
+            var field = new TextField();
+            try {
+                field.setPromptText(config[2]);
+            } catch (ArrayIndexOutOfBoundsException ignored) {
+            }
+            label.setMinWidth(120);
+            field.setMinWidth(180);
+            HBox splitPane = new HBox(label, field);
+            splitPane.setAlignment(Pos.CENTER);
+            c[index] = field.getText();
+            node.getChildren().add(splitPane);
         }
-        label.setMinWidth(120);
-        field.setMinWidth(180);
-        HBox splitPane = new HBox(label, field);
-        splitPane.setAlignment(Pos.CENTER);
-        c[index] = field.getText();
-        node.getChildren().add(splitPane);
     }
     private void addTab(String title, int id){
         Tab tab = new Tab();
