@@ -3,7 +3,7 @@ module com.okayu.homework {
     requires javafx.fxml;
     requires one.cafebabe.businessCalendar4j;
     requires com.fasterxml.jackson.databind;
-    requires annotations;
+    requires org.jetbrains.annotations;
 
     opens com.okayu.homework to javafx.fxml;
     exports com.okayu.homework;
