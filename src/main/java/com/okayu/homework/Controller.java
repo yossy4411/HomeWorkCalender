@@ -21,6 +21,7 @@ import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 public class Controller {
     @FXML
@@ -221,14 +222,33 @@ public class Controller {
         close.setOnMouseClicked(mouseEvent->scheduleTab.getTabs().remove(tab));
         tab.setGraphic(new HBox(header, close));
         VBox index = new VBox();
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         String[][] configs = new String[][]{{"タイトル","新規予定"+id,"予定のタイトル"},
-                {"開始時間",date.format(Schedule.dateFormatter),"2023-01-20 または 2023-01-20 10:10"},
-                {"終了時間",date.format(Schedule.dateFormatter),"2023-01-20 または 2023-01-20 10:10"},
+                {"開始時間",date.format(Schedule.dateFormatter),date.format(dateTimeFormatter)},
+                {"終了時間",date.format(Schedule.dateFormatter),date.format(dateTimeFormatter)},
         };
         var inputs = new Object[configs.length];
         for (int i = 0; i < configs.length; i++) {
             String[] config = configs[i];
             addContext(config, index, inputs, i);
+            if(i==2){
+                CheckBox checkBox = new CheckBox();
+                ComboBox<Integer> comboBox = new ComboBox<>();
+                comboBox.setVisibleRowCount(5);
+                comboBox.getItems().addAll(IntStream.rangeClosed(0, 23).boxed().toList());
+                comboBox.setDisable(true);
+                ComboBox<Integer> comboBox2 = new ComboBox<>();
+                comboBox2.setVisibleRowCount(5);
+                comboBox2.getItems().addAll(IntStream.rangeClosed(0, 60).boxed().toList());
+                comboBox2.setDisable(true);
+                HBox splitPane = new HBox(checkBox, comboBox, comboBox2);
+                splitPane.setAlignment(Pos.CENTER);
+                checkBox.selectedProperty().addListener((a,oldV,newV)-> {
+                    comboBox2.setDisable(!newV);
+                    comboBox.setDisable(!newV);
+                });
+                index.getChildren().add(splitPane);
+            }
         }
         /*for (Node node:inputs){
             if(node instanceof TextField input){
@@ -242,8 +262,8 @@ public class Controller {
     }
     private void addContext(String[] config, Pane node, Object[] c, int index){
         Label label = new Label(config[0]);
-        if(index==1){
-            var field = new DatePicker();
+        if(index==1|index==2){
+            DatePicker field = new DatePicker();
             try {
                 field.setPromptText(config[2]);
             } catch (ArrayIndexOutOfBoundsException ignored) {
@@ -259,8 +279,7 @@ public class Controller {
             var field = new TextField();
             try {
                 field.setPromptText(config[2]);
-            } catch (ArrayIndexOutOfBoundsException ignored) {
-            }
+            } catch (ArrayIndexOutOfBoundsException ignored) {}
             label.setMinWidth(120);
             field.setMinWidth(180);
             HBox splitPane = new HBox(label, field);
