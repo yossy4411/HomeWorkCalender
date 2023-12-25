@@ -51,6 +51,6 @@
             <VBox fx:id="menu" layoutY="405.0" prefWidth="450.0" />
         </Pane>
     </ScrollPane>
-    <TabPane fx:id="scheduleTab" layoutX="480.0" layoutY="11.0" prefHeight="468.0" prefWidth="348.0" tabClosingPolicy="UNAVAILABLE" />
+    <TabPane fx:id="scheduleTab" layoutX="480.0" layoutY="11.0" prefHeight="468.0" prefWidth="348.0" />
     <Separator layoutX="470.0" orientation="VERTICAL" prefHeight="490.0" prefWidth="0.0" />
 </AnchorPane>

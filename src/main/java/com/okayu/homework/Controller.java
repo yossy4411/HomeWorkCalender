@@ -9,19 +9,20 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.scene.text.Font;
+import javafx.util.converter.LocalTimeStringConverter;
 import one.cafebabe.bc4j.BusinessCalendar;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.stream.IntStream;
 
 public class Controller {
     @FXML
@@ -204,8 +205,6 @@ public class Controller {
     }
 
     private void addNewSchedule(LocalDate date) {
-        Tab tab = new Tab();
-        tab.setClosable(true);
         int id = 0;
         for (Tab tab1 : scheduleTab.getTabs()) {
             if (tab1.getId().contains("new_")){
@@ -214,90 +213,72 @@ public class Controller {
             }
         }
         id++;
-        Label header = new Label("新しい予定"+(id==1?"":" "+id));
+        Tab tab = new Tab("新しい予定"+(id==1?"":" "+id));
+        Label header = new Label();
         header.setStyle("-fx-font-size:10");
         tab.setId("new_"+id);
         header.setMaxWidth(50);
-        Icon close = new Icon("close",15);
-        close.setOnMouseClicked(mouseEvent->scheduleTab.getTabs().remove(tab));
-        tab.setGraphic(new HBox(header, close));
-        VBox index = new VBox();
+        GridPane index = new GridPane();
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         String[][] configs = new String[][]{{"タイトル","新規予定"+id,"予定のタイトル"},
                 {"開始時間",date.format(Schedule.dateFormatter),date.format(dateTimeFormatter)},
                 {"終了時間",date.format(Schedule.dateFormatter),date.format(dateTimeFormatter)},
+                {"予定の色","","カレンダー上で表示される色"}
+
         };
+        index.setMaxWidth(340);
+        index.getColumnConstraints().add(new ColumnConstraints(90));
         var inputs = new Object[configs.length];
         for (int i = 0; i < configs.length; i++) {
             String[] config = configs[i];
             addContext(config, index, inputs, i);
-            if(i==2){
-                CheckBox checkBox = new CheckBox();
-                ComboBox<Integer> comboBox = new ComboBox<>();
-                comboBox.setVisibleRowCount(5);
-                comboBox.getItems().addAll(IntStream.rangeClosed(0, 23).boxed().toList());
-                comboBox.setDisable(true);
-                ComboBox<Integer> comboBox2 = new ComboBox<>();
-                comboBox2.setVisibleRowCount(5);
-                comboBox2.getItems().addAll(IntStream.rangeClosed(0, 60).boxed().toList());
-                comboBox2.setDisable(true);
-                HBox splitPane = new HBox(checkBox, comboBox, comboBox2);
-                splitPane.setAlignment(Pos.CENTER);
-                checkBox.selectedProperty().addListener((a,oldV,newV)-> {
-                    comboBox2.setDisable(!newV);
-                    comboBox.setDisable(!newV);
-                });
-                index.getChildren().add(splitPane);
-            }
         }
-        /*for (Node node:inputs){
-            if(node instanceof TextField input){
-                input.getText();
-            }else if(node instanceof TextArea input){
-
-            }
-        }*/
-        tab.setContent(new ScrollPane(index));
+        ScrollPane content = new ScrollPane(index);
+        content.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        tab.setContent(content);
         scheduleTab.getTabs().add(tab);
     }
-    private void addContext(String[] config, Pane node, Object[] c, int index){
+    private void addContext(String[] config, GridPane node, Object[] c, int index){
         Label label = new Label(config[0]);
         if(index==1|index==2){
             DatePicker field = new DatePicker();
-            try {
-                field.setPromptText(config[2]);
-            } catch (ArrayIndexOutOfBoundsException ignored) {
-            }
 
-            label.setMinWidth(120);
-            field.setMinWidth(180);
-            HBox splitPane = new HBox(label, field);
-            splitPane.setAlignment(Pos.CENTER);
-            c[index] = field.getValue();
-            node.getChildren().add(splitPane);
-        }else {
-            var field = new TextField();
+            field.valueProperty().addListener((a,b,f)->System.out.println(f.toString()));
             try {
                 field.setPromptText(config[2]);
             } catch (ArrayIndexOutOfBoundsException ignored) {}
-            label.setMinWidth(120);
-            field.setMinWidth(180);
-            HBox splitPane = new HBox(label, field);
-            splitPane.setAlignment(Pos.CENTER);
+            CheckBox checkBox = new CheckBox();
+            TextField textField = new TextField();
+            textField.setPromptText(LocalTime.now().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)));
+            textField.setTextFormatter(new TextFormatter<>(new LocalTimeStringConverter(FormatStyle.SHORT)));
+            textField.setDisable(true);
+            checkBox.selectedProperty().addListener((a,oldV,newV)-> textField.setDisable(!newV));
+            field.setPrefWidth(220);
+            HBox splitPane = new HBox(field,checkBox, textField);
+            node.addRow(index,label,splitPane);
+            splitPane.setSpacing(5);
+            splitPane.setAlignment(Pos.BASELINE_LEFT);
+            c[index] = field.getValue();
+        }else if(index==3){
+            var field = new ColorPicker(Color.WHITE);
+            try {
+                field.setPromptText(config[2]);
+            } catch (ArrayIndexOutOfBoundsException ignored) {}
+            field.setMinWidth(220);
+            c[index] = field.getValue();
+            node.addRow(index,label,field);
+        } else{
+            var field = new TextField(config[1]);
+            try {
+                field.setPromptText(config[2]);
+            } catch (ArrayIndexOutOfBoundsException ignored) {}
             c[index] = field.getText();
-            node.getChildren().add(splitPane);
+            node.addRow(index,label,field);
         }
     }
     private void addTab(String title, int id){
-        Tab tab = new Tab();
-        tab.setClosable(true);
+        Tab tab = new Tab(title);
         tab.setId("sc"+id);
-        Label header = new Label(title);
-        header.setMaxWidth(50);
-        header.setStyle("-fx-font-size:10");
-        Icon close = new Icon("close",15);
-        close.setOnMouseClicked(mouseEvent->scheduleTab.getTabs().remove(tab));
-        tab.setGraphic(new HBox(header, close));
         VBox body = new VBox();
         tab.setContent(body);
         if(scheduleTab.getTabs().stream()
