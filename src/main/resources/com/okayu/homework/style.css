@@ -16,6 +16,10 @@
 .text-field {
     -fx-font-weight: 400;
 }
+.scroll-pane {
+    -fx-vbar-policy: always;
+    -fx-hbar-policy: never;
+}
 .calender .ui {
     -fx-fill: #999;
 }
@@ -28,12 +32,16 @@
 }
 
 .calender .background{
-    -fx-fill: #d0d0d0;
-    -fx-stroke: #262626;
+    -fx-background-color: #d0d0d0;
+    -fx-border-color: #262626;
+    -fx-border-radius: 1;
+    -fx-border-width: 1;
 }
 .calender .otherMonth{
-    -fx-fill: #c3c3c3;
-    -fx-stroke: #454545;
+    -fx-background-color: #c3c3c3;
+    -fx-border-color: #454545;
+    -fx-border-radius: 1;
+    -fx-border-width: 0.5;
 }
 .list .schedule{
     -fx-padding: 2;
@@ -47,12 +55,6 @@
 }
 .subject{
     -fx-font-size: 7;
-}
-* {
-    -fx-font-smoothing-type: lcd;
-}
-.newSchedule{
-    -fx-background-color: #d6d6d6;
 }
 
 

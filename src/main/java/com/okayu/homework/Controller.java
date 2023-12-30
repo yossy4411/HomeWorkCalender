@@ -3,12 +3,15 @@ package com.okayu.homework;
 import com.okayu.homework.schedule.Schedule;
 import com.okayu.homework.schedule.Schedules;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
-import javafx.scene.text.Font;
+import javafx.scene.shape.Polyline;
+import javafx.scene.shape.SVGPath;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
 import javafx.util.converter.LocalTimeStringConverter;
 import one.cafebabe.bc4j.BusinessCalendar;
 
@@ -77,11 +80,11 @@ public class Controller {
         for(int i= 0;i<35;i++) {
             int[] index = {i%7, i/7};
 
-            Rectangle rectangle = new Rectangle(calender.getPrefWidth()/7,calender.getPrefHeight()/5);
-            if(i<first||i-first>=preset.lengthOfMonth()) rectangle.getStyleClass().add("otherMonth"); else rectangle.getStyleClass().add("background");
             LocalDate finalDate = date;
 
-            Pane group = new Pane(rectangle);
+            Pane group = new Pane();
+            group.setPrefWidth(calender.getPrefWidth()/7.0-1);
+            if(i<first||i-first>=preset.lengthOfMonth()) group.getStyleClass().add("otherMonth"); else group.getStyleClass().add("background");
             group.setOnMouseClicked((mouseEvent)->setDetail(finalDate));
             Label label = new Label(date.getDayOfMonth() + "日");
             label.getStyleClass().add("day");
@@ -95,12 +98,11 @@ public class Controller {
                     Label schedule = new Label(Objects.requireNonNull(holiday.getHoliday(date)).name.replace("japanese.","").replace("休日","国民の休日"));
                     if(holiday.isHoliday(date.minusDays(1))&&date.getDayOfWeek()==DayOfWeek.MONDAY&&schedule.getText().equals("国民の休日")) schedule.setText("振替休日");
                     schedule.getStyleClass().add("schedule");
-                    schedule.setLabelFor(rectangle);
+
                     schedule.setMaxWidth(calender.getPrefWidth()/7-25);
                     schedule.setLayoutY(1);
                     schedule.setLayoutX(25);
                     group.getChildren().add(schedule);
-
                 }
             }
             List<Integer> list = jsonData.searchSchedule(date);
@@ -191,16 +193,12 @@ public class Controller {
             title.setLayoutY(1);
             schedule.getChildren().add(pane);
         }
-        StackPane pane = new StackPane();
-        Label subject = new Label("予定を追加");
-        subject.setFont(new Font(11));
-        pane.getChildren().add(subject);
-        pane.setAlignment(Pos.CENTER);
-        pane.getStyleClass().add("newSchedule");
-        pane.setLayoutY(20);
-        pane.setOnMouseClicked((mouseEvent -> addNewSchedule(date)));
+        Button sub = new Button("予定を追加");
+        sub.setPrefWidth(450);
+        sub.setStyle("-fx-background-color: d6d6d6; -fx-background-radius:4 ");
+        sub.setOnAction(event -> addNewSchedule(date));
         menu.getChildren().clear();
-        menu.getChildren().add(pane);
+        menu.getChildren().add(sub);
 
     }
 
@@ -218,28 +216,68 @@ public class Controller {
         header.setStyle("-fx-font-size:10");
         tab.setId("new_"+id);
         header.setMaxWidth(50);
-        GridPane index = new GridPane();
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-        String[][] configs = new String[][]{{"タイトル","新規予定"+id,"予定のタイトル"},
-                {"開始時間",date.format(Schedule.dateFormatter),date.format(dateTimeFormatter)},
-                {"終了時間",date.format(Schedule.dateFormatter),date.format(dateTimeFormatter)},
-                {"予定の色","","カレンダー上で表示される色"}
+        VBox index = new VBox();
+        index.setSpacing(4);
+        {
+            GridPane content = new GridPane();
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+            String[][] configs = new String[][]{{"タイトル", "新規予定" + id, "予定のタイトル"},
+                    {"開始時間", date.format(Schedule.dateFormatter), date.format(dateTimeFormatter)},
+                    {"終了時間", date.format(Schedule.dateFormatter), date.format(dateTimeFormatter)},
+                    {"予定の色", "", "カレンダー上で表示される色"},
+                    {"説明", "", "詳細で表示されるテキスト"}
+            };
 
-        };
-        index.setMaxWidth(340);
-        index.getColumnConstraints().add(new ColumnConstraints(90));
-        var inputs = new Object[configs.length];
-        for (int i = 0; i < configs.length; i++) {
-            String[] config = configs[i];
-            addContext(config, index, inputs, i);
+            content.setMaxWidth(355);
+            content.setPadding(new Insets(2));
+            content.getColumnConstraints().addAll(new ColumnConstraints(90),new ColumnConstraints(240));
+            content.setVgap(3);
+            var inputs = new Object[configs.length];
+            for (int i = 0; i < configs.length; i++) {
+                String[] config = configs[i];
+                addContext(config, content, inputs, i);
+            }
+            index.getChildren().add(content);
         }
-        ScrollPane content = new ScrollPane(index);
-        content.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-        tab.setContent(content);
+        {
+            Accordion content = new Accordion();
+            for (int i = 0; i<2; i++) {
+                newSubmission(content);
+            }
+            index.getChildren().add(content);
+            Button newPt = new Button("新規提出物");
+            newPt.setOnAction(event->newSubmission(content));
+            index.getChildren().add(newPt);
+        }
+        ScrollPane contents = new ScrollPane(index);
+        tab.setContent(contents);
         scheduleTab.getTabs().add(tab);
+    }
+    private void newSubmission(Accordion content){
+        GridPane cont = new GridPane();
+        TitledPane titledPane = new TitledPane("提出物",cont);
+        titledPane.setAnimated(true);
+        {
+            cont.add(new Label("教科"), 0, 0);
+            ComboBox<String> comboBox = new ComboBox<>();
+            comboBox.getItems().add("英語");
+            comboBox.setEditable(true);
+            cont.add(comboBox, 1, 0);
+            cont.add(new Label("教科"), 0, 0);
+
+        }
+        {
+            cont.add(new Label("タイトル"), 0, 1);
+            System.out.println(content.getAccessibleText());
+            TextField input = new TextField("提出物");
+            input.textProperty().addListener((observable, oldValue, newValue) -> titledPane.setText(newValue));
+            cont.add(input, 1, 1);
+        }
+        content.getPanes().add(titledPane);
     }
     private void addContext(String[] config, GridPane node, Object[] c, int index){
         Label label = new Label(config[0]);
+        label.setLayoutX(4);
         if(index==1|index==2){
             DatePicker field = new DatePicker();
 
@@ -268,7 +306,7 @@ public class Controller {
             c[index] = field.getValue();
             node.addRow(index,label,field);
         } else{
-            var field = new TextField(config[1]);
+            var field = index==4?new TextArea(config[1]):new TextField(config[1]);
             try {
                 field.setPromptText(config[2]);
             } catch (ArrayIndexOutOfBoundsException ignored) {}
