@@ -1,6 +1,7 @@
 package com.okayu.homework;
 
 import com.okayu.homework.schedule.Schedule;
+import com.okayu.homework.schedule.ScheduleType;
 import com.okayu.homework.schedule.Schedules;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -218,6 +219,7 @@ public class Controller {
         header.setMaxWidth(50);
         VBox index = new VBox();
         index.setSpacing(4);
+        Object[][] inputs;
         {
             GridPane content = new GridPane();
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
@@ -232,7 +234,7 @@ public class Controller {
             content.setPadding(new Insets(2));
             content.getColumnConstraints().addAll(new ColumnConstraints(90),new ColumnConstraints(240));
             content.setVgap(3);
-            var inputs = new Object[configs.length];
+            inputs = new Object[configs.length][];
             for (int i = 0; i < configs.length; i++) {
                 String[] config = configs[i];
                 addContext(config, content, inputs, i);
@@ -248,6 +250,14 @@ public class Controller {
             Button newPt = new Button("新規提出物");
             newPt.setOnAction(event->newSubmission(content));
             index.getChildren().add(newPt);
+
+        }{
+            Button button = new Button("イベントを追加");
+            button.setOnAction(event-> new Schedule.ScheduleBuilder()
+                    .name((String) inputs[0][0])
+                    .type(ScheduleType.Homework)
+                    .start((LocalDate) inputs[1][0])
+                    .time((LocalTime) inputs[0][1]));
         }
         ScrollPane contents = new ScrollPane(index);
         tab.setContent(contents);
@@ -255,27 +265,30 @@ public class Controller {
     }
     private void newSubmission(Accordion content){
         GridPane cont = new GridPane();
-        TitledPane titledPane = new TitledPane("提出物",cont);
+        TitledPane titledPane = new TitledPane("",cont);
+        Label subj = new Label("提出物");
+        titledPane.setTextFill(Color.GRAY);
+        titledPane.setGraphic(subj);
         titledPane.setAnimated(true);
         {
             cont.add(new Label("教科"), 0, 0);
             ComboBox<String> comboBox = new ComboBox<>();
             comboBox.getItems().add("英語");
             comboBox.setEditable(true);
+            comboBox.valueProperty().addListener((observableValue, s, t1) -> titledPane.setText(t1));
             cont.add(comboBox, 1, 0);
-            cont.add(new Label("教科"), 0, 0);
-
         }
         {
+            cont.add(new Label("教科"), 0, 0);
             cont.add(new Label("タイトル"), 0, 1);
-            System.out.println(content.getAccessibleText());
             TextField input = new TextField("提出物");
-            input.textProperty().addListener((observable, oldValue, newValue) -> titledPane.setText(newValue));
+            input.textProperty().addListener((observable, oldValue, newValue) -> subj.setText(newValue));
+
             cont.add(input, 1, 1);
         }
         content.getPanes().add(titledPane);
     }
-    private void addContext(String[] config, GridPane node, Object[] c, int index){
+    private void addContext(String[] config, GridPane node, Object[][] c, int index){
         Label label = new Label(config[0]);
         label.setLayoutX(4);
         if(index==1|index==2){
@@ -287,8 +300,9 @@ public class Controller {
             } catch (ArrayIndexOutOfBoundsException ignored) {}
             CheckBox checkBox = new CheckBox();
             TextField textField = new TextField();
+            LocalTimeStringConverter converter = new LocalTimeStringConverter(FormatStyle.SHORT);
             textField.setPromptText(LocalTime.now().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)));
-            textField.setTextFormatter(new TextFormatter<>(new LocalTimeStringConverter(FormatStyle.SHORT)));
+            textField.setTextFormatter(new TextFormatter<>(converter));
             textField.setDisable(true);
             checkBox.selectedProperty().addListener((a,oldV,newV)-> textField.setDisable(!newV));
             field.setPrefWidth(220);
@@ -296,21 +310,21 @@ public class Controller {
             node.addRow(index,label,splitPane);
             splitPane.setSpacing(5);
             splitPane.setAlignment(Pos.BASELINE_LEFT);
-            c[index] = field.getValue();
+            c[index] = new Object[]{field.getValue(), converter.fromString(textField.getText())};
         }else if(index==3){
             var field = new ColorPicker(Color.WHITE);
             try {
                 field.setPromptText(config[2]);
             } catch (ArrayIndexOutOfBoundsException ignored) {}
             field.setMinWidth(220);
-            c[index] = field.getValue();
+            c[index] = new Color[]{field.getValue()};
             node.addRow(index,label,field);
         } else{
             var field = index==4?new TextArea(config[1]):new TextField(config[1]);
             try {
                 field.setPromptText(config[2]);
             } catch (ArrayIndexOutOfBoundsException ignored) {}
-            c[index] = field.getText();
+            c[index] = new String[]{field.getText()};
             node.addRow(index,label,field);
         }
     }

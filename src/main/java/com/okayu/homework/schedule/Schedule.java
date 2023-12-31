@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.scene.paint.Color;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -85,11 +85,29 @@ public class Schedule {
     public static class ScheduleBuilder{
         String title;
         ScheduleType type;
+        LocalDate start;
+        LocalTime startTime;
         public ScheduleBuilder(){
         }
-        public ScheduleBuilder header(@NotNull String title, ScheduleType type){
+        public ScheduleBuilder name(String title){
             this.title = title;
+            return this;
+        }
+        public ScheduleBuilder type(ScheduleType type){
             this.type = type;
+            return this;
+        }
+        public ScheduleBuilder start(LocalDate start){
+            this.start = start;
+            return this;
+        }
+        public ScheduleBuilder start(LocalDateTime start){
+            this.start = start.toLocalDate();
+            this.startTime = start.toLocalTime();
+            return this;
+        }
+        public ScheduleBuilder time(LocalTime startTime){
+            this.startTime = startTime;
             return this;
         }
         public Schedule build() {
