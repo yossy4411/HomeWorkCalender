@@ -1,8 +1,10 @@
 package com.okayu.homework;
 
 import com.okayu.homework.schedule.Schedule;
-import com.okayu.homework.schedule.ScheduleType;
 import com.okayu.homework.schedule.Schedules;
+import com.okayu.homework.schedule.Subject;
+import com.okayu.homework.schedule.ScheduleType;
+import com.okayu.homework.schedule.submission.Submission;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -40,7 +42,6 @@ public class Controller {
     @FXML private Label month;
     @FXML private TabPane scheduleTab;
     @FXML private VBox menu;
-    //@FXML private ScrollPane menubar;
     private Schedules jsonData;
     private YearMonth time;
     private final BusinessCalendar holiday = BusinessCalendar.newBuilder()
@@ -257,7 +258,9 @@ public class Controller {
                     .name((String) inputs[0][0])
                     .type(ScheduleType.Homework)
                     .start((LocalDate) inputs[1][0])
-                    .time((LocalTime) inputs[0][1]));
+                    .time((LocalTime) inputs[1][1])
+                    .build());
+            index.getChildren().add(button);
         }
         ScrollPane contents = new ScrollPane(index);
         tab.setContent(contents);
@@ -265,26 +268,51 @@ public class Controller {
     }
     private void newSubmission(Accordion content){
         GridPane cont = new GridPane();
+        cont.getColumnConstraints().addAll(new ColumnConstraints(90),new ColumnConstraints(210));
+        cont.setAlignment(Pos.BASELINE_LEFT);
         TitledPane titledPane = new TitledPane("",cont);
         Label subj = new Label("提出物");
         titledPane.setTextFill(Color.GRAY);
         titledPane.setGraphic(subj);
         titledPane.setAnimated(true);
+        String[] inputs=new String[3];
         {
             cont.add(new Label("教科"), 0, 0);
-            ComboBox<String> comboBox = new ComboBox<>();
-            comboBox.getItems().add("英語");
-            comboBox.setEditable(true);
-            comboBox.valueProperty().addListener((observableValue, s, t1) -> titledPane.setText(t1));
+            ChoiceBox<Subject> comboBox = new ChoiceBox<>();
+            comboBox.getItems().addAll(jsonData.Subjects());
+            comboBox.valueProperty().addListener((observableValue, s, t1) -> {
+                titledPane.setText(t1.getName());
+                inputs[0]=t1.getId();
+            });
             cont.add(comboBox, 1, 0);
         }
         {
-            cont.add(new Label("教科"), 0, 0);
             cont.add(new Label("タイトル"), 0, 1);
             TextField input = new TextField("提出物");
-            input.textProperty().addListener((observable, oldValue, newValue) -> subj.setText(newValue));
+            input.textProperty().addListener((observable, oldValue, newValue) -> {
+                subj.setText(newValue);
+                inputs[1]=newValue;
+            });
 
             cont.add(input, 1, 1);
+        }
+        {
+            cont.add(new Label("種別"), 0, 2);
+            ChoiceBox<String> input = new ChoiceBox<>();
+            input.getItems().addAll("定期","不定期","修正");
+            input.valueProperty().addListener((observable, oldValue, newValue) -> inputs[2]=newValue);
+            CheckBox checkBox = new CheckBox("丸付け");
+            HBox hBox = new HBox(input,checkBox);
+            hBox.setSpacing(5);
+            hBox.setAlignment(Pos.CENTER);
+            cont.add(hBox, 1, 2);
+        }
+        {
+            cont.add(new Label("提出物"), 0, 3);
+            ChoiceBox<Submission> input = new ChoiceBox<>();
+            input.getItems().addAll(jsonData.Submissions());
+            input.valueProperty().addListener((observable, oldValue, newValue) -> inputs[2]=newValue.getId());
+            cont.add(input, 1, 3);
         }
         content.getPanes().add(titledPane);
     }
@@ -292,18 +320,16 @@ public class Controller {
         Label label = new Label(config[0]);
         label.setLayoutX(4);
         if(index==1|index==2){
-            DatePicker field = new DatePicker();
+            DatePicker field = new DatePicker(LocalDate.now());
 
-            field.valueProperty().addListener((a,b,f)->System.out.println(f.toString()));
-            try {
-                field.setPromptText(config[2]);
-            } catch (ArrayIndexOutOfBoundsException ignored) {}
+            field.valueProperty().addListener((a,b,f)->c[index][0]=f);
             CheckBox checkBox = new CheckBox();
             TextField textField = new TextField();
             LocalTimeStringConverter converter = new LocalTimeStringConverter(FormatStyle.SHORT);
             textField.setPromptText(LocalTime.now().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)));
             textField.setTextFormatter(new TextFormatter<>(converter));
             textField.setDisable(true);
+            textField.textProperty().addListener(((observableValue, s, t1) -> c[index][1]=t1));
             checkBox.selectedProperty().addListener((a,oldV,newV)-> textField.setDisable(!newV));
             field.setPrefWidth(220);
             HBox splitPane = new HBox(field,checkBox, textField);

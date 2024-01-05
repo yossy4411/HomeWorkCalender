@@ -110,14 +110,14 @@ public class Schedule {
             this.startTime = startTime;
             return this;
         }
-        public Schedule build() {
+        public JsonNode build() {
             ObjectNode jsonNodes = new ObjectMapper().createObjectNode();
             if (type.equals(ScheduleType.Homework)){
                 jsonNodes.put("type",type.asText());
-                jsonNodes.put("provided", "");
+                jsonNodes.put("provided",LocalDateTime.now().format(dateFormatter));
                 jsonNodes.put("share", ShareLevel.None.asText());
             }
-            return new Schedule(jsonNodes);
+            return jsonNodes;
         }
     }
 }

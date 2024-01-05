@@ -21,4 +21,5 @@ public class ScheduleType {
     public String asText() {
         return type;
     }
+
 }
