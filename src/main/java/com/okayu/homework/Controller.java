@@ -1,9 +1,9 @@
 package com.okayu.homework;
 
 import com.okayu.homework.schedule.Schedule;
+import com.okayu.homework.schedule.ScheduleType;
 import com.okayu.homework.schedule.Schedules;
 import com.okayu.homework.schedule.Subject;
-import com.okayu.homework.schedule.ScheduleType;
 import com.okayu.homework.schedule.submission.Submission;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -268,6 +268,7 @@ public class Controller {
     }
     private void newSubmission(Accordion content){
         GridPane cont = new GridPane();
+        cont.setVgap(5);
         cont.getColumnConstraints().addAll(new ColumnConstraints(90),new ColumnConstraints(210));
         cont.setAlignment(Pos.BASELINE_LEFT);
         TitledPane titledPane = new TitledPane("",cont);
@@ -276,6 +277,8 @@ public class Controller {
         titledPane.setGraphic(subj);
         titledPane.setAnimated(true);
         String[] inputs=new String[3];
+        Spinner<Integer> page1  = new Spinner<>(0,0,1);
+        Spinner<Integer> page2 = new Spinner<>(0,0,1);
         {
             cont.add(new Label("教科"), 0, 0);
             ChoiceBox<Subject> comboBox = new ChoiceBox<>();
@@ -304,15 +307,25 @@ public class Controller {
             CheckBox checkBox = new CheckBox("丸付け");
             HBox hBox = new HBox(input,checkBox);
             hBox.setSpacing(5);
-            hBox.setAlignment(Pos.CENTER);
+            hBox.setAlignment(Pos.BASELINE_LEFT);
             cont.add(hBox, 1, 2);
         }
         {
             cont.add(new Label("提出物"), 0, 3);
             ChoiceBox<Submission> input = new ChoiceBox<>();
             input.getItems().addAll(jsonData.Submissions());
-            input.valueProperty().addListener((observable, oldValue, newValue) -> inputs[2]=newValue.getId());
+            input.valueProperty().addListener((observable, oldValue, newValue) -> {
+                inputs[2] = newValue.getId();
+                page1.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, newValue.getPages(),1,1));
+                page2.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, newValue.getPages(),1,1));
+            });
             cont.add(input, 1, 3);
+        }
+        {
+            cont.add(new Label("ページ"), 0, 4);
+            page1.setEditable(true);
+            page2.setEditable(true);
+            cont.add(new HBox(page1,page2), 1, 4);
         }
         content.getPanes().add(titledPane);
     }
